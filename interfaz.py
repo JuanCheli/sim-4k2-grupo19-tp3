@@ -128,16 +128,30 @@ class SimulacionTalleres:
         self.entry_experimentos.insert(0, "1000")
         self.entry_experimentos.grid(row=1, column=1, padx=(10, 0), pady=5, sticky=tk.W)
         
+        # Ganancia por asistente
+        ttk.Label(params_grid, text="💰 Ganancia por asistente:", 
+                 font=('Segoe UI', 10, 'bold')).grid(row=2, column=0, sticky=tk.W, pady=5)
+        self.entry_ganancia = ttk.Entry(params_grid, width=12, style='Modern.TEntry')
+        self.entry_ganancia.insert(0, "100")
+        self.entry_ganancia.grid(row=2, column=1, padx=(10, 0), pady=5, sticky=tk.W)
+        
+        # Costo por rechazado
+        ttk.Label(params_grid, text="💸 Costo por rechazado:", 
+                 font=('Segoe UI', 10, 'bold')).grid(row=3, column=0, sticky=tk.W, pady=5)
+        self.entry_costo_rechazado = ttk.Entry(params_grid, width=12, style='Modern.TEntry')
+        self.entry_costo_rechazado.insert(0, "150")
+        self.entry_costo_rechazado.grid(row=3, column=1, padx=(10, 0), pady=5, sticky=tk.W)
+        
         # Separador visual
         sep = ttk.Separator(params_grid, orient='horizontal')
-        sep.grid(row=2, column=0, columnspan=2, sticky='ew', pady=15)
+        sep.grid(row=4, column=0, columnspan=2, sticky='ew', pady=15)
         
         # Rango de visualización
         ttk.Label(params_grid, text="👁️ Visualización:", 
-                 font=('Segoe UI', 10, 'bold')).grid(row=3, column=0, sticky=tk.W, pady=5)
+                 font=('Segoe UI', 10, 'bold')).grid(row=5, column=0, sticky=tk.W, pady=5)
         
         range_frame = ttk.Frame(params_grid)    
-        range_frame.grid(row=3, column=1, padx=(10, 0), pady=5, sticky=tk.W)
+        range_frame.grid(row=5, column=1, padx=(10, 0), pady=5, sticky=tk.W)
         
         ttk.Label(range_frame, text="Desde:").pack(side=tk.LEFT)
         self.entry_desde = ttk.Entry(range_frame, width=8, style='Modern.TEntry')
@@ -276,6 +290,26 @@ class SimulacionTalleres:
                 messagebox.showerror("❌ Error", "La cantidad de experimentos debe ser mayor a 0")
                 return False
                 
+            # Validar ganancia por asistente
+            try:
+                ganancia = float(self.entry_ganancia.get())
+                if ganancia < 0:
+                    messagebox.showerror("❌ Error", "La ganancia por asistente debe ser mayor o igual a 0")
+                    return False
+            except ValueError:
+                messagebox.showerror("❌ Error", "Ganancia por asistente debe ser un número válido")
+                return False
+                
+            # Validar costo por rechazado
+            try:
+                costo_rechazado = float(self.entry_costo_rechazado.get())
+                if costo_rechazado < 0:
+                    messagebox.showerror("❌ Error", "El costo por rechazado debe ser mayor o igual a 0")
+                    return False
+            except ValueError:
+                messagebox.showerror("❌ Error", "Costo por rechazado debe ser un número válido")
+                return False
+                
             desde = int(self.entry_desde.get())
             cantidad = int(self.entry_cantidad_filas.get())
             
@@ -319,7 +353,7 @@ class SimulacionTalleres:
                 messagebox.showerror("❌ Error", f"La suma de probabilidades debe ser 1.0 (actual: {suma_prob:.3f})")
                 return False
                 
-            return True, experimentos, desde, cantidad, probabilidades
+            return True, experimentos, desde, cantidad, probabilidades, ganancia, costo_rechazado
             
         except ValueError:
             messagebox.showerror("❌ Error", "Por favor ingrese valores numéricos válidos")
@@ -336,15 +370,15 @@ class SimulacionTalleres:
         
         return max(probabilidades.keys())
         
-    def calcular_utilidad(self, asistencia, inscripciones):
+    def calcular_utilidad(self, asistencia, inscripciones, ganancia_por_persona, costo_por_rechazado):
         if asistencia <= self.capacidad_max:
-            ingreso = asistencia * self.ganancia_por_persona
+            ingreso = asistencia * ganancia_por_persona
             costo = 0
             cantidad_fuera = 0
         else:
             cantidad_fuera = asistencia - self.capacidad_max
-            ingreso = self.capacidad_max * self.ganancia_por_persona
-            costo = cantidad_fuera * self.costo_por_rechazado
+            ingreso = self.capacidad_max * ganancia_por_persona
+            costo = cantidad_fuera * costo_por_rechazado
             
         utilidad = ingreso - costo
         return utilidad, ingreso, costo, cantidad_fuera
@@ -354,7 +388,7 @@ class SimulacionTalleres:
         if not validacion:
             return
             
-        _, experimentos, desde, cantidad_filas, probabilidades = validacion
+        _, experimentos, desde, cantidad_filas, probabilidades, ganancia_por_persona, costo_por_rechazado = validacion
         inscripciones = int(self.combo_inscripciones.get())
         
         # Limpiar resultados previos
@@ -375,7 +409,7 @@ class SimulacionTalleres:
             try:
                 random_asistencia = random.random()
                 asistencia = self.generar_asistencia(probabilidades)
-                utilidad, ingreso, costo, cantidad_fuera = self.calcular_utilidad(asistencia, inscripciones)
+                utilidad, ingreso, costo, cantidad_fuera = self.calcular_utilidad(asistencia, inscripciones, ganancia_por_persona, costo_por_rechazado)
                 
                 utilidad_total += utilidad
                 utilidad_promedio = utilidad_total / i
@@ -445,9 +479,9 @@ class SimulacionTalleres:
         
         # Mostrar resumen mejorado
         utilidad_final = utilidad_total / experimentos
-        utilidad_sin_sobre = 28 * self.ganancia_por_persona
+        utilidad_sin_sobre = 28 * ganancia_por_persona
         diferencia = utilidad_final - utilidad_sin_sobre
-        porcentaje = diferencia/utilidad_sin_sobre*100
+        porcentaje = diferencia/utilidad_sin_sobre*100 if utilidad_sin_sobre != 0 else 0
         
         if diferencia > 0:
             icono = "✅"
@@ -463,6 +497,7 @@ class SimulacionTalleres:
 🎯 Inscripciones: {inscripciones} | 🔬 Experimentos: {experimentos:,}
 💰 Utilidad Promedio: ${utilidad_final:,.2f}
 📈 Diferencia vs Sin Sobreinscripción: ${diferencia:,.2f} ({porcentaje:+.1f}%)
+💵 Ganancia por asistente: ${ganancia_por_persona:.0f} | 💸 Costo por rechazado: ${costo_por_rechazado:.0f}
 
 {icono} RECOMENDACIÓN: {decision}"""
         
