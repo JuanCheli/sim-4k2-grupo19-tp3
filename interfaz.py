@@ -12,7 +12,7 @@ class SimulacionTalleres:
         # Variables por defecto
         self.capacidad_max = 30
         self.ganancia_por_persona = 100
-        self.costo_por_rechazado = 150
+        self.costo_por_rechazado = 150  # Valor fijo, no modificable
         
         # Distribuciones de probabilidad por defecto
         self.distribuciones = {
@@ -135,23 +135,16 @@ class SimulacionTalleres:
         self.entry_ganancia.insert(0, "100")
         self.entry_ganancia.grid(row=2, column=1, padx=(10, 0), pady=5, sticky=tk.W)
         
-        # Costo por rechazado
-        ttk.Label(params_grid, text="💸 Costo por rechazado:", 
-                 font=('Segoe UI', 10, 'bold')).grid(row=3, column=0, sticky=tk.W, pady=5)
-        self.entry_costo_rechazado = ttk.Entry(params_grid, width=12, style='Modern.TEntry')
-        self.entry_costo_rechazado.insert(0, "150")
-        self.entry_costo_rechazado.grid(row=3, column=1, padx=(10, 0), pady=5, sticky=tk.W)
-        
-        # Separador visual
+        # Separador visual (ahora en row=3 en lugar de row=4)
         sep = ttk.Separator(params_grid, orient='horizontal')
-        sep.grid(row=4, column=0, columnspan=2, sticky='ew', pady=15)
+        sep.grid(row=3, column=0, columnspan=2, sticky='ew', pady=15)
         
-        # Rango de visualización
+        # Rango de visualización (ahora en row=4 en lugar de row=5)
         ttk.Label(params_grid, text="👁️ Visualización:", 
-                 font=('Segoe UI', 10, 'bold')).grid(row=5, column=0, sticky=tk.W, pady=5)
+                 font=('Segoe UI', 10, 'bold')).grid(row=4, column=0, sticky=tk.W, pady=5)
         
         range_frame = ttk.Frame(params_grid)    
-        range_frame.grid(row=5, column=1, padx=(10, 0), pady=5, sticky=tk.W)
+        range_frame.grid(row=4, column=1, padx=(10, 0), pady=5, sticky=tk.W)
         
         ttk.Label(range_frame, text="Desde:").pack(side=tk.LEFT)
         self.entry_desde = ttk.Entry(range_frame, width=8, style='Modern.TEntry')
@@ -247,7 +240,7 @@ class SimulacionTalleres:
         resumen_frame = ttk.LabelFrame(right_column, text="📝 Resumen Ejecutivo")
         resumen_frame.pack(fill=tk.X, pady=(15, 0), padx=5, ipady=10)
         
-        self.label_resumen = tk.Text(resumen_frame, height=4, wrap=tk.WORD, 
+        self.label_resumen = tk.Text(resumen_frame, height=8, wrap=tk.WORD, 
                                     font=('Segoe UI', 10), bg='#f8f9fa', 
                                     border=0, relief='flat')
         self.label_resumen.pack(fill=tk.X, padx=15, pady=10)
@@ -300,15 +293,8 @@ class SimulacionTalleres:
                 messagebox.showerror("❌ Error", "Ganancia por asistente debe ser un número válido")
                 return False
                 
-            # Validar costo por rechazado
-            try:
-                costo_rechazado = float(self.entry_costo_rechazado.get())
-                if costo_rechazado < 0:
-                    messagebox.showerror("❌ Error", "El costo por rechazado debe ser mayor o igual a 0")
-                    return False
-            except ValueError:
-                messagebox.showerror("❌ Error", "Costo por rechazado debe ser un número válido")
-                return False
+            # El costo por rechazado ahora es fijo, no necesita validación del input
+            costo_rechazado = self.costo_por_rechazado
                 
             desde = int(self.entry_desde.get())
             cantidad = int(self.entry_cantidad_filas.get())
