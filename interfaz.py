@@ -294,7 +294,7 @@ class SimulacionTalleres:
                 messagebox.showerror("❌ Error", "Ganancia por asistente debe ser un número válido")
                 return False
                 
-            # El costo por rechazado ahora es fijo, no necesita validación del input
+            # El costo por rechazado siempre es el mismo
             costo_rechazado = self.costo_por_rechazado
                 
             desde = int(self.entry_desde.get())
@@ -427,7 +427,7 @@ class SimulacionTalleres:
         for idx, fila in enumerate(filas_mostrar):
             valores = (
                 fila['taller'],
-                f"{fila['random']:.4f}",
+                f"{fila['random']:.2f}",
                 fila['asistencia'],
                 fila['fuera'],
                 f"${fila['ingreso']:.0f}",
@@ -446,7 +446,7 @@ class SimulacionTalleres:
             
             valores_ultima = (
                 ultima_fila_datos['taller'],
-                f"{ultima_fila_datos['random']:.4f}",
+                f"{ultima_fila_datos['random']:.2f}",
                 ultima_fila_datos['asistencia'],
                 ultima_fila_datos['fuera'],
                 f"${ultima_fila_datos['ingreso']:.0f}",
