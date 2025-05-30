@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import random
 
+
 class SimulacionTalleres:
     def __init__(self, root):
         self.root = root
@@ -12,7 +13,7 @@ class SimulacionTalleres:
         # Variables por defecto
         self.capacidad_max = 30
         self.ganancia_por_persona = 100
-        self.costo_por_rechazado = 150  # Valor fijo, no modificable
+        self.costo_por_rechazado = 150  # Valor fijo
         
         # Distribuciones de probabilidad por defecto
         self.distribuciones = {
@@ -30,7 +31,7 @@ class SimulacionTalleres:
         
     def configurar_estilos(self):
         self.style = ttk.Style()
-        self.style.theme_use('clam')
+        self.style.theme_use('default')
         
         # Configurar solo estilos básicos que sabemos que funcionan
         self.style.configure('Title.TLabel', font=('Segoe UI', 20, 'bold'), 
@@ -135,11 +136,11 @@ class SimulacionTalleres:
         self.entry_ganancia.insert(0, "100")
         self.entry_ganancia.grid(row=2, column=1, padx=(10, 0), pady=5, sticky=tk.W)
         
-        # Separador visual (ahora en row=3 en lugar de row=4)
+        # Separador visual
         sep = ttk.Separator(params_grid, orient='horizontal')
         sep.grid(row=3, column=0, columnspan=2, sticky='ew', pady=15)
         
-        # Rango de visualización (ahora en row=4 en lugar de row=5)
+        # Rango de visualización
         ttk.Label(params_grid, text="👁️ Visualización:", 
                  font=('Segoe UI', 10, 'bold')).grid(row=4, column=0, sticky=tk.W, pady=5)
         
@@ -345,18 +346,17 @@ class SimulacionTalleres:
             messagebox.showerror("❌ Error", "Por favor ingrese valores numéricos válidos")
             return False
             
-    def generar_asistencia(self, probabilidades):
-        rand = random.random()
+    def generar_asistencia(self, probabilidades, random_asistencia):
         acum = 0
         
         for asistentes, prob in probabilidades.items():
             acum += prob
-            if rand <= acum:
+            if random_asistencia <= acum:
                 return asistentes
         
         return max(probabilidades.keys())
         
-    def calcular_utilidad(self, asistencia, inscripciones, ganancia_por_persona, costo_por_rechazado):
+    def calcular_utilidad(self, asistencia, ganancia_por_persona, costo_por_rechazado):
         if asistencia <= self.capacidad_max:
             ingreso = asistencia * ganancia_por_persona
             costo = 0
@@ -394,8 +394,8 @@ class SimulacionTalleres:
         for i in range(1, experimentos + 1):
             try:
                 random_asistencia = random.random()
-                asistencia = self.generar_asistencia(probabilidades)
-                utilidad, ingreso, costo, cantidad_fuera = self.calcular_utilidad(asistencia, inscripciones, ganancia_por_persona, costo_por_rechazado)
+                asistencia = self.generar_asistencia(probabilidades, random_asistencia)
+                utilidad, ingreso, costo, cantidad_fuera = self.calcular_utilidad(asistencia, ganancia_por_persona, costo_por_rechazado)
                 
                 utilidad_total += utilidad
                 utilidad_promedio = utilidad_total / i
@@ -423,7 +423,7 @@ class SimulacionTalleres:
                 messagebox.showerror("❌ Error", f"Error en la simulación (iteración {i}): {str(e)}")
                 return
         
-        # Insertar filas con colores alternos
+        # Insertar filas con colores
         for idx, fila in enumerate(filas_mostrar):
             valores = (
                 fila['taller'],
@@ -463,7 +463,7 @@ class SimulacionTalleres:
         self.tabla_resultados.tag_configure('separador', background='#6c757d', foreground='white')
         self.tabla_resultados.tag_configure('ultima', background='#e3f2fd', foreground='#1565c0')
         
-        # Mostrar resumen mejorado
+        # Mostrar resumen
         utilidad_final = utilidad_total / experimentos
         utilidad_sin_sobre = 28 * ganancia_por_persona
         diferencia = utilidad_final - utilidad_sin_sobre
@@ -480,12 +480,12 @@ class SimulacionTalleres:
         
         resumen_texto = f"""📊 RESULTADOS DE LA SIMULACIÓN
         
-🎯 Inscripciones: {inscripciones} | 🔬 Experimentos: {experimentos:,}
-💰 Utilidad Promedio: ${utilidad_final:,.2f}
-📈 Diferencia vs Sin Sobreinscripción: ${diferencia:,.2f} ({porcentaje:+.1f}%)
-💵 Ganancia por asistente: ${ganancia_por_persona:.0f} | 💸 Costo por rechazado: ${costo_por_rechazado:.0f}
+    🎯 Inscripciones: {inscripciones} | 🔬 Experimentos: {experimentos:,}
+    💰 Utilidad Promedio: ${utilidad_final:,.2f}
+    📈 Diferencia vs Sin Sobreinscripción: ${diferencia:,.2f} ({porcentaje:+.1f}%)
+    💵 Ganancia por asistente: ${ganancia_por_persona:.0f} | 💸 Costo por rechazado: ${costo_por_rechazado:.0f}
 
-{icono} RECOMENDACIÓN: {decision}"""
+    {icono} RECOMENDACIÓN: {decision}"""
         
         self.label_resumen.config(state='normal')
         self.label_resumen.delete('1.0', tk.END)
